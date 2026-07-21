@@ -80,20 +80,13 @@
 	.db	"SA (WR)", 0
 	.db	"SA (GO)", 0
 	.db	"SA (ER)", 0
+
 .equ JobNames = (PC - 0x8000) * 2 + 0x8000
 	.db	"Poll",		0, 0, 0, 0
 	.db	"CLI",		0, 0, 0, 0, 0
 	.db	"SD-Card", 	0
 	.db	"INIT",		0 , 0, 0, 0
-.equ ringlengthtable = (PC - 0x8000) * 2 + 0x8000
-	.dw	1, 0xFFFE
-	.dw	2, 0xFFFE
-	.dw	4, 0xFFFE
-	.dw	8, 0xFFFE
-	.dw	16, 0xFFFE
-	.dw	32, 0xFFFE
-	.dw	64, 0xFFFE
-	.dw	128, 0xFFFE
+
 .equ mscp_status_names = (PC - 0x8000) * 2 + 0x8000
 	.db	"INIT"
 	.db	"S1  "
@@ -126,8 +119,8 @@
 	.db	" 27 "," 28 "," 29 "," 30 "	;/* 27-30 */
 	.db	" 31 "				;/* 31 */
 	.db	"CMP "				;/* 32 b: compare */
-	.db	"RD  "				;/* 33 b: read */
-	.db	"WR  "				;/* 34 b: write */
+	.db	" RD "				;/* 33 b: read */
+	.db	" WR "				;/* 34 b: write */
 	.db	" 35 "				;/* 35 */
 	.db	"WTM "				;/* 36 t: write tape mark */
 	.db	"POS "				;/* 37 t: reposition */

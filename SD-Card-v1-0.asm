@@ -62,8 +62,7 @@ SPI_transfer010:
 ;	card responds with something else than 0xFF we return or after the
 ;	9th try we return whatever the SD-Card returns.
 ;
-SD_readRes1:
-; uint8_t SD_readRes1();
+SD_readRes1:	;uint8_t SD_readRes1();
 	rcall	SPI_transfer_dummy
 	cpi	r24, 0xff
 	brne	SD_readRes090
@@ -98,10 +97,8 @@ SD_readRes090:
 ;	0 or 1 we will continue to read the remaining 5bytes from the R3/R7
 ;	response
 ;
-SD_readRes3_7:
-; void SD_readRes3_7(unit8_t *res)
-SD_readRes7:
-; void SD_readRes7(uint8_t *res);
+SD_readRes3_7:	;void SD_readRes3_7(unit8_t *res)
+SD_readRes7:	;void SD_readRes7(uint8_t *res);
 	movw	zh:zl, r25:r24
 	rcall	SD_readRes1
 	std	Z+0, r24
@@ -153,8 +150,7 @@ SD_powerUpSeq:
 ;
 ;	- now with built-in crc-7 calculation	
 ;
-SD_command:
-; void SD_command(uint8_t *cmd); !! rjh (uint8_t cmd, uint32_t arg, uint8_t crc);
+SD_command:	;void SD_command(uint8_t *cmd);
 	push	r25
 	push	r24
 	rcall	SD_commandCRC		; Calculate CRC-7
@@ -179,8 +175,7 @@ SD_command:
 ;
 ;	Calculate CRC-7 left adjusted as required by SD-Card
 ;
-SD_commandCRC:
-; uint8_t SD_commandCRC(uint8_t *cmd)
+SD_commandCRC:	;uint8_t SD_commandCRC(uint8_t *cmd)
 	movw	xh:xl, r25:r24
 	ldi	r24, 0x40		; Initiate CRC with start of Bit7=0, Bit6=1
 	ldi	r18, 5			; 5 bytes
@@ -252,8 +247,7 @@ SD_sendIfCond:;void SD_sendIfCond(uint8_t *res)
 	push	r25
 	rcall	SPI_transfer_dummy
 	cbi	b_SS
-	rcall	SPI_transfer_dummy
-	;+parameter on stack
+	rcall	SPI_transfer_dummy	;push parameter on stack
 	ldi	r18, CMD8_CRC
 	push	r18
 	ldi	r18, byte1(CMD8_ARG)
@@ -275,8 +269,7 @@ SD_sendIfCond:;void SD_sendIfCond(uint8_t *res)
 	pop	r18
 	pop	r18
 	pop	r18
-	;-parameter on stack
-	pop	r25
+	pop	r25			;-parameter on stack
 	pop	r24
 	rcall	SD_readRes7
 	rcall	SPI_transfer_dummy
@@ -289,8 +282,7 @@ SD_readOCR:; void SD_readOCR(uint8_t *res)
 	push	r25
 	rcall	SPI_transfer_dummy
 	cbi	b_SS
-	rcall	SPI_transfer_dummy
-	;+parameter on stack
+	rcall	SPI_transfer_dummy	;+parameter on stack
 	ldi	r18, CMD58_CRC
 	push	r18
 	ldi	r18, byte1(CMD58_ARG)
@@ -311,8 +303,7 @@ SD_readOCR:; void SD_readOCR(uint8_t *res)
 	pop	r18
 	pop	r18
 	pop	r18
-	pop	r18
-	;-parameter on stack
+	pop	r18			;-parameter on stack
 	pop	r25
 	pop	r24
 	rcall	SD_readRes3_7
@@ -324,8 +315,7 @@ SD_readOCR:; void SD_readOCR(uint8_t *res)
 SD_sendApp:; uint8_t SD_sendApp()
 	rcall	SPI_transfer_dummy
 	cbi	b_SS
-	rcall	SPI_transfer_dummy
-	;+parameter on stack
+	rcall	SPI_transfer_dummy	;+parameter on stack
 	ldi	r18, CMD55_CRC
 	push	r18
 	ldi	r18, byte1(CMD55_ARG)
@@ -346,8 +336,7 @@ SD_sendApp:; uint8_t SD_sendApp()
 	pop	r18
 	pop	r18
 	pop	r18
-	pop	r18
-	;-parameter on stack
+	pop	r18			;-parameter on stack
 	rcall	SD_readRes1
 	push	r24
 	rcall	SPI_transfer_dummy
@@ -359,8 +348,7 @@ SD_sendApp:; uint8_t SD_sendApp()
 SD_sendOpCond:; uint8_t SD_sendOpCond()
 	rcall	SPI_transfer_dummy
 	cbi	b_SS
-	rcall	SPI_transfer_dummy
-	;+parameter on stack
+	rcall	SPI_transfer_dummy	;+parameter on stack
 	ldi	r18, ACMD41_CRC
 	push	r18
 	ldi	r18, byte1(ACMD41_ARG)
@@ -381,8 +369,7 @@ SD_sendOpCond:; uint8_t SD_sendOpCond()
 	pop	r18
 	pop	r18
 	pop	r18
-	pop	r18
-	;-parameter on stack
+	pop	r18			;-parameter on stack
 	rcall	SD_readRes1
 	push	r24
 	rcall	SPI_transfer_dummy
@@ -434,7 +421,6 @@ SD_main:
 	rcall	SD_readOCR
 	movw	r25:r24, r5:r4		; Buffer Address
 	rcall	SD_print_R3
-
 	call	print
 	.db	"Sending CMD55...", CR, LF, "Response:", CR, LF, 0
 	rcall	SD_sendApp
@@ -443,13 +429,11 @@ SD_main:
 	.db	"Sending ACMD41...", CR, LF, "Response:", CR, LF, 0, 0
 	rcall	SD_sendOpCond
 	rcall	SD_print_R1
-
 	ldi	r16, 20
 SD_main_loop:
 	ldi	r24, low(100)
 	ldi	r25, high(100)	
 	call	delay
-	
 	call	print
 	.db	"Sending CMD55...", CR, LF, "Response:", CR, LF, 0
 	rcall	SD_sendApp
@@ -458,7 +442,6 @@ SD_main_loop:
 	.db	"Sending ACMD41...", CR, LF, "Response:", CR, LF, 0, 0
 	rcall	SD_sendOpCond
 	rcall	SD_print_R1
-
 	sbrs	r24, IN_IDLE
 	rjmp	SD_main_done
 	dec	r16
@@ -482,7 +465,6 @@ SD_main_done:
 	lds	r18, sd_status
 	bld	r18, sd__ccs
 	sts	sd_status, r18
-	
 	call	print
 	.db	"Sending CMD9...", CR, LF, "Response:", CR, LF, 0, 0
 	ldi	r24, low(sdbuffer)
@@ -493,14 +475,13 @@ SD_main_done:
 	ldi	r24, low(sdbuffer)
 	ldi	r25, high(sdbuffer)
 	rcall	SD_PRINT_CSD
-	
 	lds	r18, SPI1_INTFLAGS
 	lds	r18, SPI1_DATA
 	sts	SPI1_CTRLA, zero	; Disable
 	ldi	r18,                SPI_ENABLE_bm | SPI_MASTER_bm | SPI_PRESC_DIV4_gc
 	sts	SPI1_CTRLA, r18		; Re-enable at high speed
-		
 	rjmp	SD_main_exit
+
 SD_main_exit:
 	pop	r18;1
 	pop	r18;2
@@ -513,8 +494,7 @@ SD_main_exit:
 	pop	r4
 	ret
 	
-SD_readCSD:
-; void SD_readOCR(uint8_t *res)
+SD_readCSD:	;void SD_readOCR(uint8_t *res)
 	push	r4
 	push	r5
 	movw	r5:r4, r25:r24
@@ -806,8 +786,6 @@ SD_sendWrite010:
 	push	r5
 	clr	r4
 	clr	r5
-
-
 ;
 ;	Non buffered mode
 ;
@@ -832,59 +810,6 @@ SD_sendWrite023:
 	lds	r18, SPI1_INTFLAGS
 	sbrs	r18, SPI_IF_bp
 	rjmp	SD_sendWrite023
-	
-;
-;	SPI Buffered Mode
-;
-;		lds	r18, SPI1_CTRLB
-;		ori	r18, SPI_BUFEN_bm | SPI_BUFWR_bm
-;		sts	SPI1_CTRLB, r18
-;
-;		ld	r18, X+
-;		sts	SPI1_DATA, r18		; Start filling buffer with 1st byte
-;		crcro	r18, r4, r5
-;		sbiw	r25:r24, 1		; one byte done
-;		rjmp	SD_sendWrite021
-;
-;	SD_sendWrite020:
-;		lds	r18, SPI1_INTFLAGS	; First make sure we read the
-;		sbrs	r18, SPI_RXCIF_bp	; byte received from the slave
-;		rjmp	SD_sendWrite020		; off the receive buffer
-;		lds	r18, SPI1_DATA
-;
-;	SD_sendWrite021:
-;		ld	r18, X+
-;		sts	SPI1_DATA, r18		; Send byte
-;		crcro	r18, r4, r5
-;		sbiw	r25:r24, 1
-;		brne	SD_sendWrite020		; until all bytes done
-;
-;	SD_sendWrite022:
-;		lds	r18, SPI1_INTFLAGS	; First make sure we read the
-;		sbrs	r18, SPI_RXCIF_bp	; byte received from the slave
-;		rjmp	SD_sendWrite022		; off the receive buffer
-;		lds	r18, SPI1_DATA
-;		sts	SPI1_DATA, r5	
-;
-;	SD_sendWrite023:
-;		lds	r18, SPI1_INTFLAGS	; First make sure we read the
-;		sbrs	r18, SPI_RXCIF_bp	; byte received from the slave
-;		rjmp	SD_sendWrite023		; off the receive buffer
-;		lds	r18, SPI1_DATA
-;		sts	SPI1_DATA, r4	
-;
-;	SD_sendWrite024:
-;		lds	r18, SPI1_INTFLAGS	; First make sure we read the
-;		sbrs	r18, SPI_RXCIF_bp	; byte received from the slave
-;		rjmp	SD_sendWrite024		; off the receive buffer
-;		lds	r18, SPI1_DATA
-;
-;	SPI Unbuffered Mode
-;
-;		lds	r18, SPI1_CTRLB		; Restore non-buffered mode
-;		andi	r18, ~(SPI_BUFEN_bm | SPI_BUFWR_bm)
-;		sts	SPI1_CTRLB, r18
-
 	pop	r5
 	pop	r4
 	ldi	xl, low(SD_MAX_WRITE_ATTEMPTS)	

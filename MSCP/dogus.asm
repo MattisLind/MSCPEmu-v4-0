@@ -45,7 +45,6 @@ recordend	gus, next			; 54.
 .def	unith	= r13
 .def	ucbl	= r14			; UCB Address
 .def	ucbh	= r15
-
 
 do_gus:					; Get Unit Status
 	push	yl
@@ -265,13 +264,7 @@ do_gus910:
 	sbiw	r25:r24, 2
 	brne	do_gus910
 	movw	r25:r24, yh:yl
-#if debugmode==debuggpio
-	sbi	VPORTE_OUT, 2		;<<< debug
-#endif
 	call	put_packet
-#if debugmode==debuggpio
-	cbi	VPORTE_OUT, 2		;<<< debug
-#endif
 	pop	yh
 	pop	yl
 	ret

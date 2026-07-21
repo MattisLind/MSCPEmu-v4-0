@@ -723,12 +723,12 @@ mscp_write010:
 	tst	wcntl			; Is the last block a partial block
 	breq	mscp_write020		; no
 	movw	xh:xl, addrh:addrl	; For partial blocks make sure that we
-mscp_write015:				; fill the rest with zero
-	st	X+, zero
-	st	X+, zero
-	inc	count
+mscp_write015:				; fill the rest with zero, therefore 
+	st	X+, zero		; we initialise the 512. byte buffer
+	st	X+, zero		; with zero
+	dec	count
 	brne	mscp_write015
-	mov	count, wcntl		; Only Partial Block
+	mov	count, wcntl		; Only read partial block from memory
 mscp_write020:
 	movw	xh:xl, addrh:addrl
 mscp_write030:
@@ -738,9 +738,10 @@ mscp_write030:
 	st	X+, datah
 	dec	count			; More to go?
 	brne	mscp_write030
-	movw	r25:r24, yh:yl		; get IO control block
 	LEDON
+	movw	r25:r24, yh:yl		; get IO control block
 	call	SD_CARD_WRITE		; Write the block
+	logtr	0x51, r24, r25
 	movw	r25:r24, bkch:bkcl	; Get Blocks to Write
 	sbiw	r25:r24, 1		; More Blocks to Write
 	breq	mscp_write040		; No - All done
@@ -764,32 +765,33 @@ mscp_write090:
 mscp_cmp:
 	rcall	mscp_setupr		; Read Host Memory
 mscp_cmp010:
+	LEDON
+	movw	r25:r24, yh:yl		; get IO control block
+	call	SD_CARD_READ	
+	logtr	0x52, r24, r25
 	clr	count
-	cp	bkcl, zero
-	cpc	bkch, zero
+	movw	r25:r24, bkch:bkcl
+	sbiw	r25:r24, 1
+	brne	mscp_cmp020
+	tst	wcntl
 	breq	mscp_cmp020
 	mov	count, wcntl
 mscp_cmp020:
-	LEDON
-	call	SD_CARD_READ	
 	movw	xh:xl, addrh:addrl
 mscp_cmp030:
+	dmaread datal, datah
 	ld	r16, X+
 	ld	r17, X+
-	dmaread datal, datah
-	brcs	mscp_cmp090
+	brcs	mscp_cmp090		; DMA Error
 	cp	r16, datal
 	cpc	r17, datah
-	brne	mscp_cmp091
+	brne	mscp_cmp091		; Compare Error
 	dec	count
 	brne	mscp_cmp030	
-	cp	bkcl, zero
-	cpc	bkch, zero
+	movw	r25:r24, bkch:bkcl	; 
+	sbiw	r25:r24, 1
 	breq	mscp_cmp040
-	ldi	r16, low(1)
-	ldi	r17, high(1)
-	sub	bkcl, r16
-	sbc	bkch, r17
+	movw	bkch:bkcl, r25:r24
 	rcall	mscp_rwnextsector
 	rjmp	mscp_cmp010
 
@@ -991,25 +993,7 @@ mscp_rwnextsector010:
 	ldd	r24, Z+ucb_imgptr+0	; This is the file control block
 	ldd	r25, Z+ucb_imgptr+1
 	call	Logical2Physical	; translate it to a PBN using the fragment list
-;??	ldd	r16, Y+P_Sector+0
-;??	ldd	r17, Y+P_Sector+1
-;??	ldd	r18, Y+P_Sector+2
-;??	ldd	r19, Y+P_Sector+3
 	ret
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
 
 .undef	datal	
 .undef	datah	

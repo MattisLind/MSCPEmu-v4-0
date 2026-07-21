@@ -100,7 +100,7 @@ initcount:	.byte	1
 .include "print-v2-1.inc"		; Print routine
 .include "tparse-v2-0.inc"		; Table Driven Parser
 ; #ifdef rlv12emulation
-.include "rlv12-v2-0.inc"		; Disk Emulator
+.include "RLV12/rlv12-v2-0.inc"		; Disk Emulator
 ; #endif
 #ifdef mscpemulation
 .include	"MSCP/_ccb.inc"

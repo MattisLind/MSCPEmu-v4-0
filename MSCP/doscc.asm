@@ -29,15 +29,61 @@ recordend	scc, next		; 38.
 
 .equ	rs_scc	= scc_next - pkt_data
 
+;	do_scc( pkt )
+;	register struct $pkt *pkt;
+;	    {
+;	#if debug>=1
+;	    printf( "\nSET CONTROLLER CHARACTERISTICS" );
+;	#endif
+;	    RSP.p_flgs = 0;
+;	    /*
+;	     *  if the MSCP version number is not zero, barf royally
+;	     */
+;	    if( CMD.p_vrsn > 0 )
+;		{
+;		RSP.p_opcd = 0;
+;		RSP.p_sts = st_cmd + i_vrsn;
+;		}
+;	    else
+;		{
+;		/*
+;		 *  get the timeout value and the controller flags, and return
+;		 *  stuff like version numbers and controller identifiers
+;		 */
+;		RSP.p_sts = st_suc;
+;		if( ( CCB.timeout = CMD.p_htmo ) != 0 )
+;		    CCB.timeout += 2;
+;		CCB.flags &= cf_rpl;
+;		CCB.flags |= CMD.p_cntf & cf_msk;
+;		RSP.p_cntf = CCB.flags;
+;		RSP.p_ctmo = 120;
+;		RSP.p_csvr = rqdx3_softv;
+;		RSP.p_chvr = rqdx3_hardv;
+;		RSP.p_cnti[0] = 0;
+;		RSP.p_cnti[1] = 0;
+;		RSP.p_cnti[2] = 0;
+;		RSP.p_cnti[3] = CCB.type;
+;		/*
+;		 *  this is the maximum allowed byte count -- will VMS ever implement?
+;		 */
+;		RSP.p_mcnt[0] = 0;
+;		RSP.p_mcnt[1] = 0;
+;		}
+;	    RSP.p_opcd |= op_end;
+;	    PKT.size = rs_scc;
+;	    PKT.type = mt_seq;
+;	    put_packet( pkt );
+;	    }
+
 do_scc:					; Set Controller Characteristics
 	push	yl
 	push	yh
 	movw	yh:yl, r25:r24
 	ldd	r24, Y+scc_vrsn+0
-	ldd	r25, Y+scc_vrsn+1
+	ldd	r25, Y+scc_vrsn+1	; Expect MSCP Version to be zero
 	sbiw	r25:r24, 0
 	breq	do_scc010
-	std	Y+scc_opcd, zero
+	std	Y+scc_opcd, zero	; Fatal
 	ldi	r24, st_cmd
 	ldi	r25, i_vrsn
 	std	Y+scc_sts+0, r24

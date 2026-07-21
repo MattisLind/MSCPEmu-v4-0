@@ -2,7 +2,6 @@
 ;
 ;	Initialise MSCP Controller
 ;
-;
 ;	S1 is supposed to appear 100usec after hard init
 ;	S2 is supposed to appear 10sec after host has written S1 response
 ;	S3 is supposed to appear 10sec after host has written S2 response
@@ -86,8 +85,6 @@ inittable:
 ;
 ;	The following states are not handled by the INIT job
 ;
-;
-
 init_init:
 init_wrap:
 init_invalid:

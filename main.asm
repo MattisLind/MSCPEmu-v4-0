@@ -1086,8 +1086,8 @@ prtcreate:
 .include	"readcmdline.asm"	; Read Command Line
 .include	"readinit.asm"		; Read Init File
 #ifdef rlv12emulation
-.include	"rlv12-v2-0.asm"	; RLV12 Disk Emulation
-.include	"qbus-v2-0.asm"		; RLV12 Q-Bus Interface
+.include	"RLV12/rlv12-v2-0.asm"	; RLV12 Disk Emulation
+.include	"RLV12/qbus-v2-0.asm"		; RLV12 Q-Bus Interface
 #endif
 
 ;--------------------------------------------------------------------------
