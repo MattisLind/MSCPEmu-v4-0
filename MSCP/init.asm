@@ -43,7 +43,9 @@ init010:
 	sts	sawcount+1, r25
 	
 	lds	zl, mscpstatus
-	andi	zl, 0x1F
+	lsr	zl
+	lsr	zl
+	andi	zl, 0x07
 	clr	zh
 	subi	zl, low(-inittable)
 	sbci	zh, high(-inittable)
@@ -51,36 +53,12 @@ init010:
 
 inittable:
 	rjmp	init_init	;
-	rjmp	init_init
-	rjmp	init_init
-	rjmp	init_init
-	rjmp	init_s1
-	rjmp	init_s1
-	rjmp	init_s1
 	rjmp	init_s1
 	rjmp	init_s2
-	rjmp	init_s2
-	rjmp	init_s2
-	rjmp	init_s2
-	rjmp	init_s3
-	rjmp	init_s3
-	rjmp	init_s3
 	rjmp	init_s3
 	rjmp	init_s4
-	rjmp	init_s4
-	rjmp	init_s4
-	rjmp	init_s4
-	rjmp	init_wrap
-	rjmp	init_wrap
-	rjmp	init_wrap
 	rjmp	init_wrap
 	rjmp	init_go
-	rjmp	init_go
-	rjmp	init_go
-	rjmp	init_go
-	rjmp	init_invalid
-	rjmp	init_invalid
-	rjmp	init_invalid
 	rjmp	init_invalid
 ;
 ;	The following states are not handled by the INIT job
@@ -107,16 +85,16 @@ init_s1:
 	sts	sa_s4+0, zero
 	sts	sa_s4+1, zero
 	lds	r18, unittable+ucb_size*0+ucb_status	;
-	cbr	r18, (1<<ucb__onl)
+	cbr	r18, (1<<ucb__onl) | (1<<ucb__ofl)
 	sts	unittable+ucb_size*0+ucb_status, r18	;
 	lds	r18, unittable+ucb_size*1+ucb_status	;
-	cbr	r18, (1<<ucb__onl)
+	cbr	r18, (1<<ucb__onl) | (1<<ucb__ofl)
 	sts	unittable+ucb_size*1+ucb_status, r18	;
 	lds	r18, unittable+ucb_size*2+ucb_status	;
-	cbr	r18, (1<<ucb__onl)
+	cbr	r18, (1<<ucb__onl) | (1<<ucb__ofl)
 	sts	unittable+ucb_size*2+ucb_status, r18	;
 	lds	r18, unittable+ucb_size*3+ucb_status	;
-	cbr	r18, (1<<ucb__onl)
+	cbr	r18, (1<<ucb__onl) | (1<<ucb__ofl)
 	sts	unittable+ucb_size*3+ucb_status, r18	;
 
 	cli				;;;
@@ -149,23 +127,6 @@ init110:					; a software interrupt we still check
 ;
 ;	Process S1 responses
 ;
-	lds	r16, unittable+ucb_size*0+ucb_status+0		
-	cbr	r16, (1<<ucb__onl) | (1<<ucb__ofl)		
-	sts	unittable+ucb_size*0+ucb_status+0, r16		
-
-	lds	r16, unittable+ucb_size*1+ucb_status+0
-	cbr	r16, (1<<ucb__onl) | (1<<ucb__ofl)
-	sts	unittable+ucb_size*1+ucb_status+0, r16
-
-	lds	r16, unittable+ucb_size*2+ucb_status+0
-	cbr	r16, (1<<ucb__onl) | (1<<ucb__ofl)
-	sts	unittable+ucb_size*2+ucb_status+0, r16
-
-	lds	r16, unittable+ucb_size*3+ucb_status+0
-	cbr	r16, (1<<ucb__onl) | (1<<ucb__ofl)
-	sts	unittable+ucb_size*3+ucb_status+0, r16
-
-
 	sts	unitbase+0, zero
 	sts	unitbase+1, zero
 	ldi	r16, 60
@@ -551,9 +512,6 @@ init410:
 	sts	_ccb_state, r18
 	ldi	r16, mscp_go
 	sts	mscpstatus, r16
-	ldi	r24, low(mscpinit)	; 
-	ldi	r25, high(mscpinit)	;
-	call	unblock			;
 ;	cbi	b_CRDY			; Disable SA Read Interrupt
 	rjmp	init010
 ;--------------------------------------------------------------------------

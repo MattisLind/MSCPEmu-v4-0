@@ -195,11 +195,11 @@ poll_020:
 polljob:
 	clr	r8			; will be set to fatal_error in delay loop
 	clr	r9			; and can be displayed with "show jobs".
-	ldi	r24, low(mscpinit)	; make sure initialisation is done
-	ldi	r25, high(mscpinit)	;
+	ldi	r24, low(mscpipr)	; make sure initialisation is done
+	ldi	r25, high(mscpipr)	;
 	call	block			;
 	lds	r16, mscpstatus
-	cpi	r16, mscp_go		; We expect that mscpinit is unblocked whenever
+	cpi	r16, mscp_go		;
 	breq	poll100
 	logtr	0x72, r16, zero		;
 	rjmp	polljob			; the state goes to mscp_go
