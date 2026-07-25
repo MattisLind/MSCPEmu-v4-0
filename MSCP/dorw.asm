@@ -208,6 +208,7 @@ rwchkparam030:				; Check for RCT
 	ldd	r21, Y+rwc_bcnt+1
 	ldd	r22, Y+rwc_bcnt+2
 	ldd	r23, Y+rwc_bcnt+3
+
 	subi	r20, byte1(512)
 	sbci	r21, byte2(512)
 	sbci	r22, byte3(512)
@@ -227,6 +228,27 @@ rwchkparam040:
 	ldd	r21, Y+rwc_bcnt+1	; number of blocks to verify the
 	ldd	r22, Y+rwc_bcnt+2	; request does not go beyond the
 	ldd	r23, Y+rwc_bcnt+3	; disk size
+
+	sbis	FLAGS_LOG, log__dma
+	rjmp	rwchkparam045
+	push	zl			; Save Z first
+	push	zh			;
+	ldi	r16, log_bcnt
+	cli				;;;
+	lds	zl, log_pointer+0	;;;  3 Logging
+	lds	zh, log_pointer+1	;;;  3 Logging
+	st	Z+, r16			;;;  2
+	st	Z+, r20			;;;  2
+	st	Z+, r21			;;;  2
+	st	Z+, r22			;;;  2
+	sbrc	zh, log_overflow	;;;  2/1
+	ldi	zh, high(log_buffer+log_begin)
+	sts	log_pointer+0, zl	;;;  2
+	sts	log_pointer+1, zh	;;;  2
+	sei				;;;  1	-> 23 cycles ~1usec
+	pop	zh			; Restore Z registers
+	pop	zl
+rwchkparam045:
 
 	lsr	r23
 	ror	r22
@@ -325,8 +347,13 @@ rwchkparam070:				; Calculate End Address
 rwchkparam080:
 ;--------------------------------------------------------------------------
 ;
-;	now we have checked the parameters
+;	now we have checked the parameters and assume success
 ;
+	ldi	r24, low(st_suc)	; Return Success
+	ldi	r25, high(st_suc)
+	std	Y+rwr_sts+0, r24
+	std	Y+rwr_sts+1, r25
+
 	ldd	r18, Y+rwc_opcd		; Get Opcode
 	cpi	r18, op_rd		; Read
 	brne	rwchkparam110	
