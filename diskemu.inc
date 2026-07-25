@@ -220,6 +220,7 @@
 #define log_b_ip	0x13
 #define log_b_sa	0x14
 #define log_sa_s1	0x15
+#define	log_bcnt	0x16
 ;
 ;	0x2x - ROM
 ;
@@ -370,7 +371,7 @@
 ;#define logging (1<<log__blocknbr) | (0<<log__trace) | (1<<log__reg) | (1<<log__iack)
 ;#define logging (0<<log__blocknbr) | (0<<log__trace) | (0<<log__reg) | (1<<log__iack)
 ;#define logging (1<<log__blocknbr) | (1<<log__trace) | (1<<log__reg) | (1<<log__iack)
-#define logging (1<<log__blocknbr) | (1<<log__trace) | (0<<log__reg) | (1<<log__iack) | (1<<log__dma)
+#define logging (1<<log__blocknbr) | (1<<log__trace) | (1<<log__reg) | (1<<log__iack) | (1<<log__dma) | (1<<log__softint)
 .if (log_begin & 0xFF >0)
 	.error " Invalid non-circular buffer size"
 .endif
