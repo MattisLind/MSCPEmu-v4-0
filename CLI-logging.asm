@@ -280,12 +280,13 @@ logprintint:
 	ijmp
 	
 logprintinttbl:
-	rjmp	logprintiack
-	rjmp	logprintinit
-	rjmp	logprintsoftgo
-	rjmp	logprintsoftip
-	rjmp	logprintsoftsa
-	rjmp	logprintsas1
+	rjmp	logprintiack		;
+	rjmp	logprintinit		;
+	rjmp	logprintsoftgo		;
+	rjmp	logprintsoftip		;
+	rjmp	logprintsoftsa		;
+	rjmp	logprintsas1		;
+	rjmp	logprintbcnt		;
 	ret
 	ret
 	ret
@@ -360,6 +361,12 @@ logprintsas1:
 		;----+----1----+----2----+----3
 	.db	"State 1 (",0x81, "), 0x", 0x83, 0x82, " WR:", 0x95, " IE:", 0x94, " Vector:", 0xa6, " RSize:", 0x98, " CSize: ", 0x99, CR, LF, 0
 #endif
+	ret
+	
+logprintbcnt:
+	sts	print+4, zero
+	call	print
+	.db	"Byte Count: ", 0xa1, ", 0x", 0xd1, ".", CR, LF, 0
 	ret
 
 logprintdato:
