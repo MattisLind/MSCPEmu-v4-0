@@ -34,4 +34,15 @@ There is still an issue booting RSTS/E
 
 ### v1.0.1
 
+Minor corrections for output
 
+### v1.1.0
+
+This is the first release that supports MSCP or RLV12 emulation. Select the
+appropriate HEX file to program the microcontroller. 
+
+### v1.2.1
+
+This release fixes the return status of MSCP commands CMP, ACC and others 
+which prevented RSTS/E and XXDP from booting successfully. This release
+now boots into RT-11, RSX-11Mplus, BSD 2.11, RSTS/E and XXDP
