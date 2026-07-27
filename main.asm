@@ -1,9 +1,28 @@
+;=============================================================================
 ;
-; Disk Emulator
+;	Disk Emulator
+;	-------------
 ;
-; Created: 23.10.2021 16:20:20
-; Author : peter
+;	This program runs on the DISKEmu v5-1 hardware, a Q-Bus Card for the
+;	PDP-11 and emulates either a RLV12 or an MSCP controller. The emulation
+;	can be selected during build. 
+;    
+;	Copyright (C) 2026 Peter Schranz
+;	
+;	This program is free software: you can redistribute it and/or modify
+;	it under the terms of the GNU General Public License as published by
+;	the Free Software Foundation, either version 3 of the License, or
+;	(at your option) any later version.
+;	
+;	This program is distributed in the hope that it will be useful,
+;	but WITHOUT ANY WARRANTY; without even the implied warranty of
+;	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;	GNU General Public License for more details.
+;	
+;	You should have received a copy of the GNU General Public License
+;	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ;
+;=============================================================================
 	.listmac
 
 .include "macro-library-v1-2.asm"	; My standard macros
@@ -16,7 +35,7 @@
 	ldi	zh, high(crchi)		;  1
 	ld	@2, Z			;  3
 	eor	@2, @1			;  1
-	dec	zh			;  1
+	ldi	zh, high(crclo)		;  1
 	ld	@1, Z			;  3
 .endmacro
 
@@ -106,7 +125,7 @@ start:
 ;	Not a Software Reset
 ;
 	clr	r0
-	sts	sd_status, r0		; Require a full initialisation
+	sts	sd_status, r0		; Requires a full initialisation
 	cbi	FLAGS_COMMON, auto__boot
 	cbi	FLAGS_COMMON, sddetect__en
 	rjmp	start100
@@ -140,19 +159,15 @@ start100:
 ;
 ;	Initialize RAM
 ;
-;	During debugging we do the following. We assume that the RAM range
-;	assigned does not exceed the first 4k pages
-;
-;	0x4xxx	is copied to 0x5xxx
-;	RAMINIT	is zeroized
-;
 ;	Memory is divided into 4 regions
 ;	0x4xxx	variables, buffers, stack, etc.
 ;	0x5xxx	debug and scratchpad, not used by the emulator
 ;	0x6xxx	heap
 ;	0x7xxx	logging buffer
 ;
-;	Memory above RAMINITEND to 0x4FFF is not initialized on purpose
+;	At startup the memory from 0x4xxx is copied to 0x5xxx for debugging
+;	purposes after a crash. Then the memory from RAMINITSTART to RAMINITEND,
+;	which occupies almost but not all of the 0x4xxx regino is zeroized.
 ;
 	ldi	xl, low(0x4000)
 	ldi	xh, high(0x4000)
@@ -324,19 +339,11 @@ loginit010:
 	ldi	r18, PORT_PULLUPEN_bm
 	sts	c_CD, r18
 	sts	c_WP, r18
-#ifdef qbus50
 ;
-;	Alternate PINs for USART1 on prototype Q-Bus hardware version 5.0
-;
-	ldi	r18, PORTMUX_USART1_ALT1_gc; USART1 on PC4..7
-	sts	PORTMUX_USARTROUTEA, r18
-#else
-;
-;	Alternate PINs for SPI1 in all other cases
+;	Alternate PINs for SPI1
 ;
 	ldi	r18, PORTMUX_SPI1_ALT1_gc; SPI1 on PC4..7
 	sts	PORTMUX_SPIROUTEA, r18
-#endif
 ;
 ;	The data port 
 ;
@@ -402,28 +409,6 @@ loginit010:
 	cbi	FLAGS_COMMON, serin__drv	; Polled 
 	cbi	FLAGS_COMMON, serout__drv
 
-;=============================================================================
-
-;	clr	xl
-;	clr	xh
-;	clr	r25
-;testloop010:
-;	ldi	r24, 'a'
-;testloop015:
-;	call	serout
-;testloop020:	
-;	sbiw	xh:xl, 1
-;	brne	testloop020
-;	inc	r24
-;	cpi	r24, 'z'+1
-;	brlo	testloop015
-;	sbrs	r25, 0
-;	cbi	b_LED
-;	sbrc	r25, 0
-;	sbi	b_LED
-;	inc	r25
-;	rjmp	testloop010
-	
 ;=============================================================================
 ;
 ;	RTC / PIT
@@ -747,7 +732,7 @@ serin100:				; Else proceed with polled IO
 ;
 ;-----------------------------------------------------------------------------
 ;
-;	Main program in fact is the interactive command line interpreter
+;	Main program is the interactive command line interpreter
 ;
 main:
 	call	print
@@ -1029,12 +1014,8 @@ prtcreate:
 
 ;--------------------------------------------------------------------------
 ;
-;	
+;	SD-Card
 ;
-#ifdef rlv12emulation
-.include	"seekjob.asm"		; Our seek job
-.include	"scanjob.asm"		; MSCP scan job
-#endif
 .include	"sdcardjob.asm"		; SD-Card Insert/Remove and LED routine
 .include	"SD-Card-Print-v1-0.asm"; Print SD-Card messages
 .include	"SD-Card-v1-0.asm"	; Main SD-Card routines
@@ -1085,18 +1066,23 @@ prtcreate:
 
 .include	"readcmdline.asm"	; Read Command Line
 .include	"readinit.asm"		; Read Init File
+;--------------------------------------------------------------------------
+;
+;	RLV12 modules
+;
 #ifdef rlv12emulation
+.include	"seekjob.asm"		; Our seek job
+.include	"scanjob.asm"		; MSCP scan job
 .include	"RLV12/rlv12-v2-0.asm"	; RLV12 Disk Emulation
-.include	"RLV12/qbus-v2-0.asm"		; RLV12 Q-Bus Interface
+.include	"RLV12/qbus-v2-0.asm"	; RLV12 Q-Bus Interface
 #endif
 
 ;--------------------------------------------------------------------------
 ;
-;	MSCP modules are just included just to verify the assembler syntax 
-;	but not actually used for the moment
+;	MSCP modules
 ;
 #ifdef mscpemulation
-.include	"MSCP/qbus-v2-0.asm"	; RLV12 Q-Bus Interface
+.include	"MSCP/qbus-v2-0.asm"	; MSCP Q-Bus Interface
 .include	"MSCP/clear.asm"
 .include	"MSCP/init.asm"
 .include	"MSCP/doabo.asm"
@@ -1106,8 +1092,8 @@ prtcreate:
 .include	"MSCP/dosuc.asm"
 .include	"MSCP/dogcs.asm"
 .include	"MSCP/doplf.asm"
-.include	"MSCP/doscc.asm"	; work in progress
-.include	"MSCP/doonl.asm"	; work in progress
+.include	"MSCP/doscc.asm"
+.include	"MSCP/doonl.asm"
 .include	"MSCP/douna.asm"
 .include	"MSCP/doother.asm"
 .include	"MSCP/poll-v2-0.asm"
