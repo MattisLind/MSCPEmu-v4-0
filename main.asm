@@ -1072,7 +1072,6 @@ prtcreate:
 ;
 #ifdef rlv12emulation
 .include	"seekjob.asm"		; Our seek job
-.include	"scanjob.asm"		; MSCP scan job
 .include	"RLV12/rlv12-v2-0.asm"	; RLV12 Disk Emulation
 .include	"RLV12/qbus-v2-0.asm"	; RLV12 Q-Bus Interface
 #endif
