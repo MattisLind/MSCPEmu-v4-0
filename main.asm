@@ -1071,7 +1071,7 @@ prtcreate:
 ;	RLV12 modules
 ;
 #ifdef rlv12emulation
-.include	"seekjob.asm"		; Our seek job
+.include	"RLV12/seekjob.asm"	; Our seek job
 .include	"RLV12/rlv12-v2-0.asm"	; RLV12 Disk Emulation
 .include	"RLV12/qbus-v2-0.asm"	; RLV12 Q-Bus Interface
 #endif
