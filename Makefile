@@ -10,7 +10,7 @@
 #
 main : qbusw
 	  
-.PHONY : install, readflash, verify, mscp, rlv
+.PHONY : install, readflash, verify, mscp, rlv, release
 
 #
 #	QBUS Hardware Version 5.1
@@ -70,6 +70,35 @@ rlvw :
 	 -D lasttag='"'$(shell git describe --tags --abbrev=0 )'"' \
 	  main.asm
 
+#
+#
+#
+release : 
+	MVK_CONFIG_LOG_LEVEL=0 wine ~/windows.exe/avrasm2.exe -fI -o main-mscp.hex  -m main.map  -l main.lss  -S main.tmp  -W+ie \
+	 -I ../avrasminclude \
+	 -I ../include  \
+	 -i AVR128DB48def.inc \
+	 -d main.obj  \
+	 -e main.eep \
+	 -D mscpemulation \
+	 -D qbus51 \
+	 -D lasttag='"'$(shell git describe --tags --abbrev=0 )'"' \
+	  main.asm
+
+	MVK_CONFIG_LOG_LEVEL=0 wine ~/windows.exe/avrasm2.exe -fI -o main-rlv12.hex  -m main.map  -l main.lss  -S main.tmp  -W+ie \
+	 -I ../avrasminclude \
+	 -I ../include  \
+	 -i AVR128DB48def.inc \
+	 -d main.obj  \
+	 -e main.eep \
+	 -D rlv12emulation \
+	 -D qbus51 \
+	 -D lasttag='"'$(shell git describe --tags --abbrev=0 )'"' \
+	  main.asm
+
+#
+#
+#
 install :
 	avrdude -p AVR128DB48 -c atmelice_updi -U flash:w:main.hex
 	
