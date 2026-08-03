@@ -47,6 +47,7 @@ commandlist:
 	.dw	kw_pbn,		0,		cmd_l2p
 	.dw	kw_dmareg,	0,		cmd_dmareg
 	.dw	kw_interrupt,	0,		cmd_interrupt
+	.dw	kw_bootrom,	0,		cmd_bootrom
 	.dw	kw_eol,		0,		cmd_done
 	.dw	0
 
@@ -466,6 +467,51 @@ cmd_dumpblock1:
 	.dw	kw_eol,		cmddumpbl,	cmd_done
 	.dw	0
 
+cmd_bootrom:
+	.dw	kw_eol,		bootrom_show,	cmd_done
+	.dw	kw_enable,	0,		cmd_bootrom010
+	.dw	kw_disable,	0,		cmd_bootrom020
+	.dw	kw_set,		0,		cmd_bootrom030
+	.dw	kw_readwrite,	0,		cmd_bootrom040
+	.dw	kw_readonly,	0,		cmd_bootrom050
+	.dw	kw_load,	0,		cmd_bootrom060
+	.dw	kw_intern,	0,		cmd_bootrom070
+	.dw	0
+
+cmd_bootrom010:
+	.dw	kw_eol,		bootrom_enable,	cmd_done
+	.dw	0
+	
+cmd_bootrom020:
+	.dw	kw_eol,		bootrom_disable,cmd_done
+	.dw	0
+	
+cmd_bootrom030:
+	.dw	kw_eol,		bootrom_load,	cmd_done
+	.dw	0
+	
+cmd_bootrom040:
+	.dw	kw_eol,		bootrom_rw,	cmd_done
+	.dw	0
+	
+cmd_bootrom050:
+	.dw	kw_eol,		bootrom_ro,	cmd_done
+	.dw	0
+	
+cmd_bootrom060:
+	.dw	kw_qstring,	a_cd,		cmd_bootrom061
+	.dw	kw_string,	a_cd,		cmd_bootrom061
+	.dw	0
+
+cmd_bootrom061:
+	.dw	kw_eol,		bootrom_load,	cmd_done
+	.dw	0
+
+cmd_bootrom070:
+	.dw	kw_eol,		bootrom_intern,	cmd_done
+	.dw	0
+	
+
 kw_rlv12init:	P_KEYWORD	"[RLV12]"
 kw_mscpinit:	P_KEYWORD	"[MSCP]"
 kw_no:		P_KEYWORD	"NO"
@@ -563,6 +609,12 @@ kw_sdcaddr:	P_KEYWORD	"Address"
 kw_dma:		P_KEYWORD	"DMA"
 kw_softint:	P_KEYWORD	"SOFTware"
 kw_verbose:	P_KEYWORD	"VERbose"
+kw_bootrom:	P_KEYWORD	"BOOTRom"
+kw_enable:	P_KEYWORD	"ENable"
+kw_disable:	P_KEYWORD	"DISable"
+kw_readwrite:	P_KEYWORD	"RW"
+kw_readonly:	P_KEYWORD	"RO"
+kw_intern:	P_KEYWORD	"INTern"
 
 cmd_sdread:
 	.dw	kw_sdclbn,	0,		cmd_sdread010

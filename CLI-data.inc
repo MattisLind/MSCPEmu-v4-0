@@ -3,7 +3,6 @@
 ;	Variables
 ;
 	.dseg
-	align	4
 cdstring:	.byte	4
 currentdir:	.byte	4
 nbr:		.byte	8
@@ -36,3 +35,6 @@ sdcardlbn:	.byte	4
 sdcardaddr:	.byte	4
 sdcardflag:	.byte	1
 
+bootromstatus:	.byte	1
+
+bootromimage:	.byte	128

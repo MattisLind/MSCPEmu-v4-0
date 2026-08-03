@@ -81,7 +81,11 @@ readflash :
 
 duboot :
 	macro11 -l DUBOOT.LST -o DUBOOT.OBJ DUBOOT.MAC
-	perl obj2bin.pl --raw --rt11 --outfile=DUBOOT.BIN DUBOOT.OBJ
+	perl ~/Tools/obj2bin-master/obj2bin.pl --raw --rt11 --outfile=DUBOOT.BIN DUBOOT.OBJ
+
+dlboot :
+	macro11 -l DLBOOT.LST -o DLBOOT.OBJ DLBOOT.MAC
+	perl ~/Tools/obj2bin-master/obj2bin.pl --raw --rt11 --outfile=DLBOOT.BIN DLBOOT.OBJ
 
 sram :
 	avrdude -p AVR128DB48 -c atmelice_updi -U sram:r:sram.bin:r

@@ -28,23 +28,11 @@ usersp2:
 		.byte	256		; Seek JOB 
 usersp3:
 ;
-;	CLI Command Buffers
+;	Old Serial requires aligned buffers so make them adjacent to stacks
 ;
-InputBuffer:	.byte	256
-HistoryBuffer:	.byte	256
-;
-;	General SD-Card IO Buffers
-;
-sdbuffer:	.byte	512		; Buffer to initialise SD-Card
-initialsp:
-;
-;
-;
-.include "FAT/FAT-library-v2-0.inc"
-
 .include "serial1.inc"
-.include "CLI-data.inc"
-.include "rtos-v3-0.inc"
+
+
 ;
 ;	Unit Control Blocks
 ;
@@ -57,6 +45,23 @@ initialsp:
 ;
 	align 4
 unittable:	.byte	units*ucb_size	;
+;
+;	CLI Command Buffers
+;
+InputBuffer:	.byte	128
+HistoryBuffer:	.byte	128
+;
+;	General SD-Card IO Buffers
+;
+sdbuffer:	.byte	512		; Buffer to initialise SD-Card
+initialsp:
+;
+;
+;
+.include "FAT/FAT-library-v2-0.inc"
+
+.include "CLI-data.inc"
+.include "rtos-v3-0.inc"
 ;
 ;	Job Control Blocks
 ;
@@ -76,13 +81,11 @@ partitionid:	.byte	1
 volumeid:	.byte	1
 InitCommand:	.byte	2
 led_oneshot:	.byte	1
-romstatus:	.byte	1
 vector:		.byte	2		; Interrupt Vector
 ;--------------------------------------------------------------------------
 ;
 ;	
 ;
-	align	4
 heap:		.byte	4		; Queue Header for malloc() and free()
 log_pointer:	.byte	2		; current pointer into circular logging buffer
 log_previous:	.byte	4
@@ -99,9 +102,9 @@ initcount:	.byte	1
 .include "monitor-v2-0.inc"		; Interactive monitor
 .include "print-v2-1.inc"		; Print routine
 .include "tparse-v2-0.inc"		; Table Driven Parser
-; #ifdef rlv12emulation
+#ifdef rlv12emulation
 .include "RLV12/rlv12-v2-0.inc"		; Disk Emulator
-; #endif
+#endif
 #ifdef mscpemulation
 .include	"MSCP/_ccb.inc"
 .include	"MSCP/_pcb.inc"

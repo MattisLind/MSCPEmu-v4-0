@@ -234,10 +234,21 @@ logprinttbl:
 	rjmp	logprintdma		; 5
 	rjmp	logprintmscp		; 6
 	rjmp	logprintnoop		; 7
+	#ifdef	rlv12emulation
 	rjmp	logprintcommand		; 8
 	rjmp	logprintcommand		; 9
+	#endif
+	#ifdef	mscpemulation
+	rjmp	logprintnoop		; 8
+	rjmp	logprintnoop		; 9
+	#endif
 	rjmp	logprintaddress		; A
+	#ifdef	rlv12emulation
 	rjmp	logprintseek		; B
+	#endif
+	#ifdef	mscpemulation
+	rjmp	logprintnoop		; B
+	#endif
 	rjmp	logprintpbn		; C
 	rjmp	logprintdiskaddr	; D
 	rjmp	logprinttrace		; E
@@ -416,15 +427,6 @@ logprintaddress:
 	.db	TAB, "     DMA  Address  ", 0xb1, CR, LF, 0
 	ret
 
-logprintseek:
-	ldd	r16, Y+0
-	andi	r16, CSR_DS_gm
-	ori	r16, '0'
-	sts	pprint+4, r16
-	call	print
-		;----+----1----+----2----+----3
-	.db	"SEEK:", 0x94, "  (", 0x81, ") DAR        ", 0xa2, CR, LF, 0, 0
-	ret
 logprintpbn:
 	bst	r16, 3
 	andi	r16, 0x07
@@ -474,6 +476,7 @@ logaddr2name010:
 logaddr2name020:
 	ret
 	
+#ifdef rlv12emulation
 ;--------------------------------------------------------------------------
 ;
 ;
@@ -598,6 +601,16 @@ logprintcyl060:
 	pop	r16
 	ret
 
+logprintseek:
+	ldd	r16, Y+0
+	andi	r16, CSR_DS_gm
+	ori	r16, '0'
+	sts	pprint+4, r16
+	call	print
+		;----+----1----+----2----+----3
+	.db	"SEEK:", 0x94, "  (", 0x81, ") DAR        ", 0xa2, CR, LF, 0, 0
+	ret
+#endif
 ;--------------------------------------------------------------------------
 ;
 ;

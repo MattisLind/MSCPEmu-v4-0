@@ -616,7 +616,7 @@ pitwait:
 	sts	TCB2_CTRLA, r18
 ;=============================================================================
 ;
-;	Disable/Enable Boot ROM
+;	Disable/Enable Boot ROM and set boot ROM image
 ;
 	#if	cpldif==22
 	ldi	r16, 7
@@ -625,10 +625,37 @@ pitwait:
 	cbi	b_ALEW
 	ldi	r16, 1			; 0=disable, 1=enable
 	out	dataportout, r16
-	sts	romstatus, r16
+	sts	bootromstatus, r16
 	sbi	b_WR
 	cbi	b_WR
+	ldi	zl, low(rom173000)
+	ldi	zh, high(rom173000)
 	#endif
+	#if	cpldif==40
+	sbi	b_RS0
+	cbi	b_RS1
+	sbi	b_RS2
+	ldi	r16, 1			; 0=disable, 1=enable
+	sts	bootromstatus, r16
+	out	dataportout, r16
+	ldi	r16, 0xff
+	out	dataportdir, r16
+	sbi	b_WR
+	cbi	b_WR
+	ldi	zl, low(duboot+4)
+	ldi	zh, high(duboot+4)
+	#endif	
+
+	ldi	xl, low(bootromimage)
+	ldi	xh, high(bootromimage)
+	
+	ldi	r16, 128
+bootrom_init:
+	ld	r17, Z+
+	st	X+, r17
+	dec	r16
+	brne	bootrom_init
+
 	
 ;=============================================================================
 ;
@@ -1046,6 +1073,7 @@ prtcreate:
 .include	"CLI-commands.asm"	; Various Other commands
 .include	"CLI-sdcard.asm"	; Read Multiple Block Test
 .include	"CLI-status.asm"	; Show status of variables
+.include	"CLI-bootrom.asm"	; Boot ROM
 ;
 ;	My FAT library
 ;

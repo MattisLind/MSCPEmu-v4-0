@@ -716,14 +716,27 @@ qbus_rom:
 	
 	cbr	zl, (1<<ROM) | (1<<WTBT); Isolate Address Bits 1..6
 	clr	zh
-	subi	zl, low(-duboot)
-	sbci	zh, high(-duboot)
+	subi	zl, low(-bootromimage)
+	sbci	zh, high(-bootromimage)
 	ld	yl, Z+
 	ld	yh, Z+			; 
 	DATI
 	INTEXIT	log_romrd
 	
 qbus_rom_dato:
+	lds	yl, bootromstatus
+	sbrs	yl, 1
+	rjmp	qbus_rom_dato010
+	push	zl
+	DATO
+	pop	zl
+	cbr	zl, (1<<ROM) | (1<<WTBT); Isolate Address Bits 1..6
+	clr	zh
+	subi	zl, low(-bootromimage)
+	sbci	zh, high(-bootromimage)
+	st	Z+, yl
+	st	Z+, yh
+qbus_rom_dato010:
 	INTEXIT	log_romwr
 
 ;

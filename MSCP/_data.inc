@@ -2,7 +2,6 @@
 ;	Note that here we carefully place variables at a 256. byte boundary
 ;	to have nice addresses during debugging
 ;
-		align	8		; Make nice boundaries
 mscpipr:	.byte	2		; Poll Job IP Read Wait Lock
 mscpsaw:	.byte	2		; Init Job SA Write Wait Lock
 ;

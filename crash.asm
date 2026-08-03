@@ -183,7 +183,7 @@ crashloop:
 	sts	pprint+6, r22
 	sts	pprint+7, r23
 
-	
+#ifdef rlv12emulation	
 	lds	r16, CSRL
 	lds	r17, CSRH
 	sts	pprint+0, r16
@@ -216,7 +216,7 @@ crashloop:
 	lds	r17, CSR16+1
 	sts	pprint+14, r16
 	sts	pprint+15, r17
-	
+#endif	
 	
 	lds	r16, heap+0
 	lds	r17, heap+1

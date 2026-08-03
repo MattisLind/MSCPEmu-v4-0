@@ -74,23 +74,6 @@ cmd_showintirqs:
 	sts	iackcount, zero
 	sts	initcount, zero
 #ifdef mscpemulation
-	sbis	b_MSCP				; Skip if MSCP Emulation
-	rjmp	cmd_showintcsr
-
-;	lds	r16, ipr+0
-;	lds	r17, ipr+1
-;	sts	pprint+0, r16
-;	sts	pprint+1, r17
-;	lds	r16, sa_go+0
-;	lds	r17, sa_go+1
-;	sts	pprint+2, r16
-;	sts	pprint+3, r17
-;	lds	r16, mscpstatus
-;	sts	pprint+4, r16
-;	call	print
-;	.db	TAB, "IPR(octal) ", 0xA0, CR, LF, TAB, "SAR(octal) ", 0xA2, CR, LF
-;	.db	TAB, "MSCPstatus ", 0x84, CR, LF, 0
-
 	lds	r16, ipr+0
 	lds	r17, ipr+1
 	sts	pprint+0, r16
@@ -175,7 +158,7 @@ cmd_showfncstats020:
 	clc
 	ret
 #endif
-
+#ifdef rlv12emulation
 cmd_showintcsr:
 	lds	r16, CSRL
 	lds	r17, CSRH
@@ -184,7 +167,7 @@ cmd_showintcsr:
 	call	print
 	.db	TAB, "CSR(octal) ", 0xa0, CR, LF, 0
 	ret
-
+#endif
 cmd_showintprint:
 	sts	pprint+0, yl
 	sts	pprint+1, yh
