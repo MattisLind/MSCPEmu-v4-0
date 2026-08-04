@@ -1,7 +1,15 @@
 # MSCP Emulator
 
 MSCP Emulator is a dual-width Q-BUS card for PDP-11. It emulates an MSCP disk controller
-and allows to store disk images on a SD-Card. 
+and allows to store disk images on a SD-Card. The following operating systems boot
+successfully as of release v1.3.0
+- RT-11 V5.3
+- RT-11 V5.7
+- RSX-11Mplus V4.6
+- 2.11 BSD
+- RSTS/E 10.1
+- ULTRIX-11 V3.1
+- XXDP V2.5
 
 ## Content
 
