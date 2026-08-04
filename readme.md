@@ -46,3 +46,18 @@ appropriate HEX file to program the microcontroller.
 This release fixes the return status of MSCP commands CMP, ACC and others 
 which prevented RSTS/E and XXDP from booting successfully. This release
 now boots into RT-11, RSX-11Mplus, BSD 2.11, RSTS/E and XXDP
+
+### v1.3.0
+
+This release brings the `bootrom` command from my RLV12 emulator to the DISK
+emulator. This release requires the CPLD design files v1.1.0 or higher. The
+CPLD can now be set by the microcontroller to respond to IO-Page addresses 
+173000<sub>8</sub> to 173177<sub>8</sub>. When this boot ROM range is enabled
+the microcontroller can provide the instructions of a small bootstrap ROM image.
+The bootstrap ROM can be up to 64. words. The default is a small bootstrap
+program that boots unit 0 from the MSCP controller at address 172150<sub>8</sub>.
+
+You can manually load your own boostrap controller via the command line interface
+from files stored on the SD-Card.
+
+
