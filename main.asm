@@ -157,6 +157,137 @@ start100:
 
 ;=============================================================================
 ;
+;	Port Settings
+;
+;	Normal GPIO Pins
+;
+	sbi	d_MSCP
+	sbi	d_DMR			; DMA Request
+	cbi	d_DMG			; DMA Granted
+	sbi	d_ABO			; DMA Abort
+	sbi	d_ACK			; CPLD Interrupt Acknowledge
+	sbi	d_CLK			; CPU Clock Output
+	
+#ifdef mscpemulation
+	ldi	r18, low(0154)		; Setting the default vector does
+	ldi	r19, high(0154)		; not really make sense, as with
+	sts	vector+0, r18		; each initialisation the vector is 
+	sts	vector+1, r19		; set.
+	sbi	b_MSCP
+#endif
+#ifdef rlv12emulation
+	ldi	r18, low(0160)		; Default Vector
+	ldi	r19, high(0160)		;
+	sts	vector+0, r18
+	sts	vector+1, r19
+	cbi	b_MSCP
+#endif
+	cbi	b_DMR			; No DMA request
+	sbi	b_ABO
+	cbi	b_ABO			; Abort any pending DMA
+	sbi	b_ACK			; Acknowledge eventually pending interrupt
+	cbi	b_ACK			; Unlock Q-Bus
+
+#if cpldif==40
+	sbi	d_RS0			; Register Select 0
+	sbi	d_RS1			; Register Select 1
+	sbi	d_RS2			; Register Select 2
+#endif
+#if cpldif==22
+	sbi	d_ALER			; Read Register Address Latch
+	cbi	b_ALER
+	sbi	d_ALEW			; Write Register Address Latch
+	cbi	b_ALEW
+#endif
+	sbi	d_LED			; Activity LED
+	LEDOFF
+	sbi	d_CRDY			;
+	sbi	d_IRQ			;
+	sbi	d_RD			; Read Register in CPLD
+	sbi	d_WR			; Write Register in CPLD
+	
+	sbi	b_CRDY			; Enable RLV12 controller or SA read interrupt
+	cbi	b_IRQ			; No Q-Bus Interrupt Request
+	cbi	b_RD			; Important default is cleared!!!
+	cbi	b_WR			;
+;
+;	MVIO Port Settings - Port C is used for the SD-Card interface and the UART
+;
+;	ldi	r18, PORT_SRL_bm	; Low Slew Rate on port c
+;	sts	PORTC_PORTCTRL, r18	; 
+	
+	sbi	b_SS			; Disable SD-Card
+	sbi	d_TXD			; UART Transmit
+	cbi	d_RXD			; UART Receive
+	cbi	d_CD			; SD-Card Card Detect
+	cbi	d_WP			; SD-Card Write Protect
+	sbi	d_MOSI			; SD-Card
+	sbi	b_MOSI			; SD-Card
+	cbi	d_MISO			; SD-Card
+	sbi	d_SCK			; SD-Card
+	sbi	d_SS			; SD-Card
+;
+;	Activate Pull-Up for CD and WP of SD-Card slot
+;
+	ldi	r18, PORT_PULLUPEN_bm
+	sts	c_CD, r18
+	sts	c_WP, r18
+;
+;	Alternate PINs for SPI1
+;
+	ldi	r18, PORTMUX_SPI1_ALT1_gc; SPI1 on PC4..7
+	sts	PORTMUX_SPIROUTEA, r18
+;
+;	The data port 
+;
+	ldi	r18, 0xFF
+	out	dataportdir, r18	; default data port direction is output !!!
+
+;=============================================================================
+;
+;	Disable/Enable Boot ROM and set boot ROM image
+;
+	#if	cpldif==22
+	ldi	r16, 7
+	out	dataportout, r16
+	sbi	b_ALEW
+	cbi	b_ALEW
+	ldi	r16, 1			; 0=disable, 1=enable
+	out	dataportout, r16
+	sts	bootromstatus, r16
+	sbi	b_WR
+	cbi	b_WR
+	ldi	zl, low(rom173000)
+	ldi	zh, high(rom173000)
+	#endif
+	#if	cpldif==40
+	sbi	b_RS0
+	cbi	b_RS1
+	sbi	b_RS2
+	ldi	r16, 1			; 0=disable, 1=enable
+	sts	bootromstatus, r16
+	out	dataportout, r16
+	ldi	r16, 0xff
+	out	dataportdir, r16
+	sbi	b_WR
+	cbi	b_WR
+	ldi	zl, low(duboot+4)
+	ldi	zh, high(duboot+4)
+	#endif	
+
+	ldi	xl, low(bootromimage)
+	ldi	xh, high(bootromimage)
+	
+	ldi	r16, 128
+bootrom_init:
+	ld	r17, Z+
+	st	X+, r17
+	dec	r16
+	brne	bootrom_init
+
+
+;=============================================================================
+;
 ;	Initialize RAM
 ;
 ;	Memory is divided into 4 regions
@@ -262,93 +393,7 @@ loginit010:
 ;
 	ldi	r18, 0xff
 	sts	nguard, r18		; Null Job Stack Guard Byte
-;=============================================================================
-;
-;	Port Settings
-;
-;	Normal GPIO Pins
-;
-	sbi	d_MSCP
-	sbi	d_DMR			; DMA Request
-	cbi	d_DMG			; DMA Granted
-	sbi	d_ABO			; DMA Abort
-	sbi	d_ACK			; CPLD Interrupt Acknowledge
-	sbi	d_CLK			; CPU Clock Output
-	
-#ifdef mscpemulation
-	ldi	r18, low(0154)		; Setting the default vector does
-	ldi	r19, high(0154)		; not really make sense, as with
-	sts	vector+0, r18		; each initialisation the vector is 
-	sts	vector+1, r19		; set.
-	sbi	b_MSCP
-#endif
-#ifdef rlv12emulation
-	ldi	r18, low(0160)		; Default Vector
-	ldi	r19, high(0160)		;
-	sts	vector+0, r18
-	sts	vector+1, r19
-	cbi	b_MSCP
-#endif
-	cbi	b_DMR			; No DMA request
-	sbi	b_ABO
-	cbi	b_ABO			; Abort any pending DMA
-	sbi	b_ACK			; Acknowledge eventually pending interrupt
-	cbi	b_ACK			; Unlock Q-Bus
 
-#if cpldif==40
-	sbi	d_RS0			; Register Select 0
-	sbi	d_RS1			; Register Select 1
-	sbi	d_RS2			; Register Select 2
-#endif
-#if cpldif==22
-	sbi	d_ALER			; Read Register Address Latch
-	cbi	b_ALER
-	sbi	d_ALEW			; Write Register Address Latch
-	cbi	b_ALEW
-#endif
-	sbi	d_LED			; Activity LED
-	LEDOFF
-	sbi	d_CRDY			;
-	sbi	d_IRQ			;
-	sbi	d_RD			; Read Register in CPLD
-	sbi	d_WR			; Write Register in CPLD
-	
-	sbi	b_CRDY			; Enable RLV12 controller or SA read interrupt
-	cbi	b_IRQ			; No Q-Bus Interrupt Request
-	cbi	b_RD			; Important default is cleared!!!
-	cbi	b_WR			;
-;
-;	MVIO Port Settings - Port C is used for the SD-Card interface and the UART
-;
-;	ldi	r18, PORT_SRL_bm	; Low Slew Rate on port c
-;	sts	PORTC_PORTCTRL, r18	; 
-	
-	sbi	b_SS			; Disable SD-Card
-	sbi	d_TXD			; UART Transmit
-	cbi	d_RXD			; UART Receive
-	cbi	d_CD			; SD-Card Card Detect
-	cbi	d_WP			; SD-Card Write Protect
-	sbi	d_MOSI			; SD-Card
-	sbi	b_MOSI			; SD-Card
-	cbi	d_MISO			; SD-Card
-	sbi	d_SCK			; SD-Card
-	sbi	d_SS			; SD-Card
-;
-;	Activate Pull-Up for CD and WP of SD-Card slot
-;
-	ldi	r18, PORT_PULLUPEN_bm
-	sts	c_CD, r18
-	sts	c_WP, r18
-;
-;	Alternate PINs for SPI1
-;
-	ldi	r18, PORTMUX_SPI1_ALT1_gc; SPI1 on PC4..7
-	sts	PORTMUX_SPIROUTEA, r18
-;
-;	The data port 
-;
-	ldi	r18, 0xFF
-	out	dataportdir, r18	; default data port direction is output !!!
 ;=============================================================================
 ;
 ;	Port E - Debug
@@ -614,48 +659,6 @@ pitwait:
 	sts	TCB2_CTRLB, r18		
 	ldi	r18, TCB_ENABLE_bm + TCB_CLKSEL_EVENT_gc
 	sts	TCB2_CTRLA, r18
-;=============================================================================
-;
-;	Disable/Enable Boot ROM and set boot ROM image
-;
-	#if	cpldif==22
-	ldi	r16, 7
-	out	dataportout, r16
-	sbi	b_ALEW
-	cbi	b_ALEW
-	ldi	r16, 1			; 0=disable, 1=enable
-	out	dataportout, r16
-	sts	bootromstatus, r16
-	sbi	b_WR
-	cbi	b_WR
-	ldi	zl, low(rom173000)
-	ldi	zh, high(rom173000)
-	#endif
-	#if	cpldif==40
-	sbi	b_RS0
-	cbi	b_RS1
-	sbi	b_RS2
-	ldi	r16, 1			; 0=disable, 1=enable
-	sts	bootromstatus, r16
-	out	dataportout, r16
-	ldi	r16, 0xff
-	out	dataportdir, r16
-	sbi	b_WR
-	cbi	b_WR
-	ldi	zl, low(duboot+4)
-	ldi	zh, high(duboot+4)
-	#endif	
-
-	ldi	xl, low(bootromimage)
-	ldi	xh, high(bootromimage)
-	
-	ldi	r16, 128
-bootrom_init:
-	ld	r17, Z+
-	st	X+, r17
-	dec	r16
-	brne	bootrom_init
-
 	
 ;=============================================================================
 ;
