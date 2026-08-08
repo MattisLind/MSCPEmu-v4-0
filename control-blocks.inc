@@ -238,3 +238,30 @@ record		ucb, seek, 2		;
 record		ucb, rsvd2, 2		; 
 recordend	ucb, size
 
+;--------------------------------------------------------------------------
+;
+;	User Row control block
+;
+;	The user row is a 32byte area that is not affected by chip erase.
+;	It can be written and programmed by the UPDI even when the device 
+;	is locked and it can be read and programmed by the microcontroller.
+;
+;
+recordstart	usr
+record		usr, signature, 2	; Signature to check whether the user row is valid
+record		usr, systemflags, 1	; System configuration flags
+	.equ	usr__alt	= 0	; Alternative Device Address
+	.equ	cpld__alt	= 1	; In CPLD Config Register
+	.equ	usr__mscp	= 1	; Activate MSCP Emulation
+	.equ	usr__disableini	= 2	; Disable INI file
+record		usr, bootflags, 1	; Boot ROM configuration flags
+	.equ	usr__bootrom	= 0	; Activate Boot ROM at startup
+	.equ	cpld__bootrom	= 0	; In CPLD Config Register
+	.equ	usr__bootromwr	= 1	; Write Enable Boot ROM
+	.equ	usr__bootromee	= 2	; Read Boot ROM Image from EEPROM
+	.equ	usr__bootromid	= 3	; EEPROM Region for Boot ROM Image: 0, 1, 2, 3
+record		usr, logflags, 1	; Logging Flags see FLAGS_LOG
+record		usr, unitflags, 4	;
+record		usr, reserved, 23
+recordend	usr, size		; The user row has 32 bytes in total
+

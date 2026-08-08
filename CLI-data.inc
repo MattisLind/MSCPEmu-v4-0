@@ -34,7 +34,3 @@ logdataentryc:	.byte	1
 sdcardlbn:	.byte	4
 sdcardaddr:	.byte	4
 sdcardflag:	.byte	1
-
-bootromstatus:	.byte	1
-
-bootromimage:	.byte	128

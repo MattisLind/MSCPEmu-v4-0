@@ -770,6 +770,11 @@ logstatus:
 	lds	r18, tpflags
 	sbrc	r18, tp__no
 	rjmp	logallno
+	rcall	logstatusprint
+	clc
+	ret
+	
+logstatusprint:
 	in	r18, FLAGS_LOG
 ;
 	call	print
@@ -831,9 +836,8 @@ logstatus:
 	lds	r18, unittable+ucb_size*3+ucb_log
 	bst	r18, ucb__log
 	rcall	logstatusonoff
-;
-	clc
 	ret
+
 logstatusonoff:
 	brtc	logstatusonoff010
 	call	print

@@ -8,14 +8,14 @@
 #		All other versions and prototypes have either been modified to
 #		comply or have been discarded.
 #
-main : qbusw
-	  
-.PHONY : install, readflash, verify, mscp, rlv, release
+main : mscpw
+
+.PHONY : install, readflash, verify, mscp, mscpw, rlv, rlvw, release
 
 #
 #	QBUS Hardware Version 5.1
 #
-qbus :
+mscp :
 	avrasm2 -fI -o main.hex  -m main.map  -l main.lss  -S main.tmp  -W+ie \
 	 -I ../include  \
 	 -I ../avrinclude \
@@ -23,13 +23,12 @@ qbus :
 	 -d main.obj  \
 	 -e main.eep \
 	 -D mscpemulation \
-	 -D qbus51 \
 	 -D lasttag='"'$(shell git describe --tags --abbrev=0 )'"' \
 	  main.asm
 #
 #	Q-BUS Hardware Version 5.1 using wine to run latest avrasm2 from Microchip Studio
 #
-qbusw :
+mscpw :
 	MVK_CONFIG_LOG_LEVEL=0 wine ~/windows.exe/avrasm2.exe -fI -o main.hex  -m main.map  -l main.lss  -S main.tmp  -W+ie \
 	 -I ../avrasminclude \
 	 -I ../include  \
@@ -37,7 +36,6 @@ qbusw :
 	 -d main.obj  \
 	 -e main.eep \
 	 -D mscpemulation \
-	 -D qbus51 \
 	 -D lasttag='"'$(shell git describe --tags --abbrev=0 )'"' \
 	  main.asm
 #
@@ -51,7 +49,6 @@ rlv :
 	 -d main.obj  \
 	 -e main.eep \
 	 -D rlv12emulation \
-	 -D qbus51 \
 	 -D lasttag='"'$(shell git describe --tags --abbrev=0 )'"' \
 	  main.asm
 
@@ -66,7 +63,6 @@ rlvw :
 	 -d main.obj  \
 	 -e main.eep \
 	 -D rlv12emulation \
-	 -D qbus51 \
 	 -D lasttag='"'$(shell git describe --tags --abbrev=0 )'"' \
 	  main.asm
 
@@ -81,7 +77,6 @@ release :
 	 -d main.obj  \
 	 -e main.eep \
 	 -D mscpemulation \
-	 -D qbus51 \
 	 -D lasttag='"'$(shell git describe --tags --abbrev=0 )'"' \
 	  main.asm
 
@@ -92,7 +87,6 @@ release :
 	 -d main.obj  \
 	 -e main.eep \
 	 -D rlv12emulation \
-	 -D qbus51 \
 	 -D lasttag='"'$(shell git describe --tags --abbrev=0 )'"' \
 	  main.asm
 
@@ -107,6 +101,9 @@ verify :
 	
 readflash :
 	avrdude -p AVR128DB48 -c atmelice_updi -U flash:r:main.hex:i
+
+eeprom :
+	avrdude -p AVR128DB48 -c atmelice_updi -U eeprom:w:main.eep:i
 
 duboot :
 	macro11 -l DUBOOT.LST -o DUBOOT.OBJ DUBOOT.MAC

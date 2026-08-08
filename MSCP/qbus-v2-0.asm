@@ -724,7 +724,7 @@ qbus_rom:
 	INTEXIT	log_romrd
 	
 qbus_rom_dato:
-	lds	yl, bootromstatus
+	lds	yl, config+usr_bootflags
 	sbrs	yl, 1
 	rjmp	qbus_rom_dato010
 	push	zl

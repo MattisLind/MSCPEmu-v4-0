@@ -28,7 +28,6 @@
 .include "macro-library-v1-2.asm"	; My standard macros
 .include "FAT/FAT-defs.asm"		; FAT defintions
 
-
 .macro	crcro;	byte, crcl, crch
 	mov	zl, @0			;  1
 	eor	zl, @2			;  1
@@ -38,7 +37,6 @@
 	ldi	zh, high(crclo)		;  1
 	ld	@1, Z			;  3
 .endmacro
-
 
 ;=============================================================================
 ;
@@ -168,20 +166,6 @@ start100:
 	sbi	d_ACK			; CPLD Interrupt Acknowledge
 	sbi	d_CLK			; CPU Clock Output
 	
-#ifdef mscpemulation
-	ldi	r18, low(0154)		; Setting the default vector does
-	ldi	r19, high(0154)		; not really make sense, as with
-	sts	vector+0, r18		; each initialisation the vector is 
-	sts	vector+1, r19		; set.
-	sbi	b_MSCP
-#endif
-#ifdef rlv12emulation
-	ldi	r18, low(0160)		; Default Vector
-	ldi	r19, high(0160)		;
-	sts	vector+0, r18
-	sts	vector+1, r19
-	cbi	b_MSCP
-#endif
 	cbi	b_DMR			; No DMA request
 	sbi	b_ABO
 	cbi	b_ABO			; Abort any pending DMA
@@ -245,37 +229,113 @@ start100:
 
 ;=============================================================================
 ;
-;	Disable/Enable Boot ROM and set boot ROM image
+;	USART 1
 ;
+	ldi	r18, low(BAUD1)
+	sts	USART1_BAUDL, r18
+	ldi	r18, high(BAUD1)
+	sts	USART1_BAUDH, r18
+
+	ldi	r18, USART_NORMAL_CHSIZE_8BIT_gc
+	sts	USART1_CTRLC, r18
+	sbi	VPORTB_OUT, TXD		; TXD1
+	sbi	VPORTB_DIR, TXD		; TXD1
+
+	ldi	r18, USART_RXEN_bm | USART_TXEN_bm | USART_SFDEN_bm
+	sts	USART1_CTRLB, r18
+
+	ldi	r18, 0x00
+	sts	USART1_CTRLA, r18
+;
+;	Driver usage is controlled by FLAGS_COMMON
+;
+	cbi	FLAGS_COMMON, serin__drv	; Polled 
+	cbi	FLAGS_COMMON, serout__drv
+
+;=============================================================================
+;
+;	Map Flash section 2 to Data address space
+;
+	ldi	r18, CPU_CCP_IOREG_gc
+	sts	CPU_CCP, r18
+	ldi     r18, NVMCTRL_FLMAP_SECTION2_gc
+	sts     NVMCTRL_CTRLB, r18
+
+;=============================================================================
+;
+;	Init config and in case USERROW has a valid signature copy USERROW
+;	to config
+;
+	ldi	r16, logging
+	sts	config+usr_logflags, r16
+	sts	config+usr_bootflags, zero
+	sts	config+usr_unitflags+0, zero
+	sts	config+usr_unitflags+1, zero
+	sts	config+usr_unitflags+2, zero
+	sts	config+usr_unitflags+3, zero
+	sts	config+usr_systemflags, zero
+;
+	lds	r16, USERROW_base+usr_signature+0
+	lds	r17, USERROW_base+usr_signature+1
+	cpi	r16, 0x55
+	brne	nouserrow
+	cpi	r17, 0xAA
+	brne	nouserrow
+;
+	ldi	xl, low(USERROW_base)
+	ldi	xh, high(USERROW_base)
+	ldi	zl, low(config)
+	ldi	zh, high(config)
+	ldi	r16, usr_size
+;
+userrowcopy:
+	ld	r17, X+
+	st	Z+, r17
+	dec	r16
+	brne	userrowcopy
+;
+nouserrow:
+;=============================================================================
+;
+;	Setup CPLD config register 6
+;
+	clr	r17				; assume default
+	lds	r16, config+usr_bootflags	; get boot ROM flags
+	bst	r16, usr__bootrom		; 0=disable, 1=enable
+	bld	r17, cpld__bootrom		; copy to CPLD register
+;
+;	Set primary / secondary
+;
+	lds	r16, config+usr_systemflags	; get system flags
+	bst	r16, usr__alt			; 0=primary, 1=secondary CSR address
+	bld	r17, cpld__alt			; copy to CPLD register
+
 	#if	cpldif==22
 	ldi	r16, 7
 	out	dataportout, r16
 	sbi	b_ALEW
 	cbi	b_ALEW
-	ldi	r16, 1			; 0=disable, 1=enable
-	out	dataportout, r16
-	sts	bootromstatus, r16
+	out	dataportout, r17		; Write CPLD Register
 	sbi	b_WR
 	cbi	b_WR
-	ldi	zl, low(rom173000)
+	ldi	zl, low(rom173000)		; RLV12 Bootstrap
 	ldi	zh, high(rom173000)
 	#endif
+
 	#if	cpldif==40
-	sbi	b_RS0
-	cbi	b_RS1
+	cbi	b_RS0
+	sbi	b_RS1
 	sbi	b_RS2
-	ldi	r16, 1			; 0=disable, 1=enable
-	sts	bootromstatus, r16
-	out	dataportout, r16
+	out	dataportout, r17		; Write CPLD Register
 	ldi	r16, 0xff
 	out	dataportdir, r16
 	sbi	b_WR
 	cbi	b_WR
-	ldi	zl, low(duboot+4)
+	ldi	zl, low(duboot+4)		; MSCP Bootstrap
 	ldi	zh, high(duboot+4)
 	#endif	
 
-	ldi	xl, low(bootromimage)
+	ldi	xl, low(bootromimage)		; 
 	ldi	xh, high(bootromimage)
 	
 	ldi	r16, 128
@@ -284,8 +344,27 @@ bootrom_init:
 	st	X+, r17
 	dec	r16
 	brne	bootrom_init
-
-
+;=============================================================================
+;
+;	Set default vectors and switch emulation (for now it is a pin)
+;
+#ifdef mscpemulation
+	ldi	r18, low(0154)		; Setting the default vector does
+	ldi	r19, high(0154)		; not really make sense, as with
+	sts	vector+0, r18		; each initialisation the vector is 
+	sts	vector+1, r19		; set.
+	sbi	b_MSCP
+#endif
+#ifdef rlv12emulation
+	ldi	r18, low(0160)		; Default Vector
+	lds	r17, config+usr_systemflags
+	sbrc	r17, usr__alt
+	ldi	r18, low(0170)		; Alt Vector
+	clr	r19			; High byte of both vectors is zero
+	sts	vector+0, r18
+	sts	vector+1, r19
+	cbi	b_MSCP
+#endif
 ;=============================================================================
 ;
 ;	Initialize RAM
@@ -380,19 +459,27 @@ loginit010:
 	st	Y+, zero
 	sbiw	r25:r24, 1
 	brne	loginit010
-	ldi	r18, logging
-	out	FLAGS_LOG, r18
-	ldi	r18, (1<<ucb__log)
-	sts	unittable+ucb_size*0+ucb_log+0, r18	;
-	ldi	r18, (1<<ucb__log)
-	sts	unittable+ucb_size*1+ucb_log+0, r18	;
-
 ;--------------------------------------------------------------------------
 ;
 ;	Initialize RAM values
 ;
 	ldi	r18, 0xff
 	sts	nguard, r18		; Null Job Stack Guard Byte
+
+;=============================================================================
+;
+;	Default logging flags
+;
+	lds	r18, config+usr_logflags
+	out	FLAGS_LOG, r18
+	lds	r18, config+usr_unitflags+0
+	sts	unittable+ucb_size*0+ucb_log+0, r18	;
+	lds	r18, config+usr_unitflags+1
+	sts	unittable+ucb_size*1+ucb_log+0, r18	;
+	lds	r18, config+usr_unitflags+2
+	sts	unittable+ucb_size*2+ucb_log+0, r18	;
+	lds	r18, config+usr_unitflags+3
+	sts	unittable+ucb_size*3+ucb_log+0, r18	;
 
 ;=============================================================================
 ;
@@ -414,46 +501,12 @@ loginit010:
 #endif
 ;=============================================================================
 ;
-;	Map Flash section 2 to Data address space
-;
-	ldi	r18, CPU_CCP_IOREG_gc
-	sts	CPU_CCP, r18
-	ldi     r18, NVMCTRL_FLMAP_SECTION2_gc
-	sts     NVMCTRL_CTRLB, r18
-
-;=============================================================================
-;
 ;	SPI 1
 ;
 	ldi	r18, SPI_SSD_bm;  | SPI_BUFEN_bm
 	sts	SPI1_CTRLB, r18
 	ldi	r18, spispeed
 	sts	SPI1_CTRLA, r18		
-;=============================================================================
-;
-;	USART 1
-;
-	ldi	r18, low(BAUD1)
-	sts	USART1_BAUDL, r18
-	ldi	r18, high(BAUD1)
-	sts	USART1_BAUDH, r18
-
-	ldi	r18, USART_NORMAL_CHSIZE_8BIT_gc
-	sts	USART1_CTRLC, r18
-	sbi	VPORTB_OUT, TXD		; TXD1
-	sbi	VPORTB_DIR, TXD		; TXD1
-
-	ldi	r18, USART_RXEN_bm | USART_TXEN_bm | USART_SFDEN_bm
-	sts	USART1_CTRLB, r18
-
-	ldi	r18, 0x00
-	sts	USART1_CTRLA, r18
-;
-;	Driver usage is controlled by FLAGS_COMMON
-;
-	cbi	FLAGS_COMMON, serin__drv	; Polled 
-	cbi	FLAGS_COMMON, serout__drv
-
 ;=============================================================================
 ;
 ;	RTC / PIT
@@ -1077,6 +1130,7 @@ prtcreate:
 .include	"CLI-sdcard.asm"	; Read Multiple Block Test
 .include	"CLI-status.asm"	; Show status of variables
 .include	"CLI-bootrom.asm"	; Boot ROM
+.include	"CLI-config.asm"	; Userrow Config
 ;
 ;	My FAT library
 ;

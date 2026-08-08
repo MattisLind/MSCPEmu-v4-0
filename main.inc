@@ -123,3 +123,13 @@ RAMINITEND:
 sd_status:	.byte	1
 reset_status:	.byte	1
 put_packet_wait:.byte	1
+;
+;	Config is initialised seperately
+;
+config:
+		.byte	32
+;
+;	Bootrom Image is initialised seperately
+;
+bootromimage:	.byte	128
+

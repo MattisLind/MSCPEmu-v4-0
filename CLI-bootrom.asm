@@ -19,12 +19,12 @@
 
 bootrom_enable:
 
-	sbi	b_RS0
-	cbi	b_RS1
+	cbi	b_RS0
+	sbi	b_RS1
 	sbi	b_RS2
-	lds	r16, bootromstatus
+	lds	r16, config+usr_bootflags
 	sbr	r16, 0x01
-	sts	bootromstatus, r16
+	sts	config+usr_bootflags, r16
 	out	dataportout, r16
 	ldi	r16, 0xff
 	out	dataportdir, r16
@@ -35,13 +35,13 @@ bootrom_enable:
 
 bootrom_disable:
 
-	sbi	b_RS0
-	cbi	b_RS1
+	cbi	b_RS0
+	sbi	b_RS1
 	sbi	b_RS2
-	lds	r16, bootromstatus
+	lds	r16, config+usr_bootflags
 	cbr	r16, 0x01
 	out	dataportout, r16
-	sts	bootromstatus, r16
+	sts	config+usr_bootflags, r16
 	ldi	r16, 0xff
 	out	dataportdir, r16
 	sbi	b_WR
@@ -50,16 +50,16 @@ bootrom_disable:
 	ret
 
 bootrom_rw:
-	lds	r16, bootromstatus
+	lds	r16, config+usr_bootflags
 	sbr	r16, 0x02
-	sts	bootromstatus, r16
+	sts	config+usr_bootflags, r16
 	clc
 	ret
 
 bootrom_ro:
-	lds	r16, bootromstatus
+	lds	r16, config+usr_bootflags
 	cbr	r16, 0x02
-	sts	bootromstatus, r16
+	sts	config+usr_bootflags, r16
 	clc
 	ret
 	
@@ -81,7 +81,7 @@ bootrom_intern010:
 	ret
 
 bootrom_show:
-	lds	r16, bootromstatus
+	lds	r16, config+usr_bootflags
 	sbrc	r16, 0
 	rjmp	bootrom_show010
 	call	print

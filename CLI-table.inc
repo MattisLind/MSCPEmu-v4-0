@@ -48,9 +48,45 @@ commandlist:
 	.dw	kw_dmareg,	0,		cmd_dmareg
 	.dw	kw_interrupt,	0,		cmd_interrupt
 	.dw	kw_bootrom,	0,		cmd_bootrom
+	.dw	kw_config,	0,		cmd_config
+	.dw	kw_device,	0,		cmd_device
 	.dw	kw_eol,		0,		cmd_done
 	.dw	0
+;
+;
+;
+cmd_device:
+	.dw	kw_primary,	0,		cmd_device010
+	.dw	kw_secondary,	0,		cmd_device020
+	.dw	0
 
+cmd_device010:
+	.dw	kw_eol,		devprimary,	cmd_done
+	.dw	0
+
+cmd_device020:
+	.dw	kw_eol,		devsecondary,	cmd_done
+
+;
+;	config
+;
+cmd_config:
+	.dw	kw_show,	0,		cmd_config010
+	.dw	kw_save,	0,		cmd_config020
+	.dw	kw_erase,	0,		cmd_config030
+	.dw	0
+	
+cmd_config010:
+	.dw	kw_eol,		configshow,	cmd_done
+	.dw	0
+
+cmd_config020:
+	.dw	kw_eol,		configsave,	cmd_done
+	.dw	0
+
+cmd_config030:
+	.dw	kw_eol,		configerase,	cmd_done
+	.dw	0
 ;
 ;	interrupt <nnn>
 ;
@@ -615,6 +651,13 @@ kw_disable:	P_KEYWORD	"DISable"
 kw_readwrite:	P_KEYWORD	"RW"
 kw_readonly:	P_KEYWORD	"RO"
 kw_intern:	P_KEYWORD	"INTern"
+kw_userrow:	P_KEYWORD	"USERROW"
+kw_config:	P_KEYWORD	"CONFIG"
+kw_save:	P_KEYWORD	"SAVe"
+kw_erase:	P_KEYWORD       "ERASE"
+kw_device:	P_KEYWORD	"DEVice"
+kw_primary:	P_KEYWORD	"PRImary"
+kw_secondary:	P_KEYWORD	"SECondary"
 
 cmd_sdread:
 	.dw	kw_sdclbn,	0,		cmd_sdread010
