@@ -318,8 +318,6 @@ nouserrow:
 	out	dataportout, r17		; Write CPLD Register
 	sbi	b_WR
 	cbi	b_WR
-	ldi	zl, low(rom173000)		; RLV12 Bootstrap
-	ldi	zh, high(rom173000)
 	#endif
 
 	#if	cpldif==40
@@ -331,9 +329,16 @@ nouserrow:
 	out	dataportdir, r16
 	sbi	b_WR
 	cbi	b_WR
+	#endif	
+
+#ifdef rlv12emulation
+	ldi	zl, low(dlboot+4)		; RLV12 Bootstrap
+	ldi	zh, high(dlboot+4)
+#endif
+#ifdef	mscpemulation
 	ldi	zl, low(duboot+4)		; MSCP Bootstrap
 	ldi	zh, high(duboot+4)
-	#endif	
+#endif
 
 	ldi	xl, low(bootromimage)		; 
 	ldi	xh, high(bootromimage)

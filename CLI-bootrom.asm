@@ -64,10 +64,14 @@ bootrom_ro:
 	ret
 	
 bootrom_intern:
-
-	ldi	zl, low(duboot+4)
+#ifdef rlv12emulation
+	ldi	zl, low(dlboot+4)		; RLV12 Bootstrap
+	ldi	zh, high(dlboot+4)
+#endif
+#ifdef	mscpemulation
+	ldi	zl, low(duboot+4)		; MSCP Bootstrap
 	ldi	zh, high(duboot+4)
-
+#endif
 	ldi	xl, low(bootromimage)
 	ldi	xh, high(bootromimage)
 	

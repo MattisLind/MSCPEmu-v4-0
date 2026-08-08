@@ -66,7 +66,28 @@ the microcontroller can provide the instructions of a small bootstrap ROM image.
 The bootstrap ROM can be up to 64. words. The default is a small bootstrap
 program that boots unit 0 from the MSCP controller at address 172150<sub>8</sub>.
 
-You can manually load your own boostrap controller via the command line interface
-from files stored on the SD-Card.
+You can manually load your own boostrap code via the command line interface
+from files stored on the SD-Card uinsg the bootrom load <i>filename</i> command.
 
+### v2.0.0
 
+This release bringes two important changes, first it uses the AVR-DB USERROW to
+save important settings that will survive a firmware upgrade, reset or power cycle.
+The settings are saved as `config`. Three commands allow to show, save and erase
+the config stored to the USERROW. USERROW is a 32byte flash region that is not
+affected by a flash erase.
+
+The settings that are saved in v2.0.0 are, the logging flags for general log
+output and unit related logging, the setting about the boot ROM and whether the
+controller should be configured for the primary or secondary device register
+address. 
+
+Boot ROM settings require CPLD design files v1.3.0 or newer. Device register
+address setting requires CPLD design files v2.0.0.
+
+The bootrom intern command now copies the bootstrap loader for either DL or
+DU to the 173000<sub>8</sub> range of the IO page, depending on the firmware.
+This is also the default boot ROM loaded when the boot ROM is enabled.
+
+This allows to boot the PDP-11 directly form either DL0: or DU0: at power-up,
+if the bootstrap option has been selected to start with address 173000<sub>8</sub>.
