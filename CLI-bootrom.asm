@@ -85,12 +85,15 @@ bootrom_intern010:
 	ret
 
 bootrom_show:
+	call	seroutcrlf
+bootrom_showc:
+	call	print
+	.db	"BOOTROM ........................:", 0
 	lds	r16, config+usr_bootflags
 	sbrc	r16, 0
 	rjmp	bootrom_show010
 	call	print
-	.db	CR, LF
-	.db	"BOOTROM is disabled", CR, LF, 0
+	.db	" disabled", CR, LF, 0
 	clc
 	ret
 
@@ -98,15 +101,13 @@ bootrom_show010:
 	sbrs	r16, 1
 	rjmp	bootrom_show020
 	call	print
-	.db	CR, LF
-	.db	"BOOTROM is enabled read/write", CR, LF, 0
+	.db	" enabled read/write", CR, LF, 0
 	clc
 	ret
 	
 bootrom_show020:
 	call	print
-	.db	CR, LF
-	.db	"BOOTROM is enabled read only", CR, LF, 0, 0
+	.db	" enabled read only", CR, LF, 0, 0
 	clc
 	ret
 

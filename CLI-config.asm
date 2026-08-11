@@ -35,7 +35,7 @@ configshow010:
 	.db	" Secondary ", NULL
 configshow020:
 	call	logstatusprint
-	call	bootrom_show
+	call	bootrom_showc
 	clc
 	ret
 ;
