@@ -33,6 +33,13 @@ The CPLDs on the DISKEmu hardware need to be programmed with the appropriate JED
 To build the firmware for this MSCP Emulator you need also the include and FAT
 repositories
 
+#### Additional Firmware Modules
+
+You also need the FAT library and the include directory from my repositories.
+
+## Documentation
+
+For a detailed description of the project please read ![MSCP Emulator](https://www.5volts.ch/pages/mscpemulator/)
 
 ## Releases
 

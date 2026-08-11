@@ -28,17 +28,7 @@
 .include "macro-library-v1-2.asm"	; My standard macros
 .include "FAT/FAT-defs.asm"		; FAT defintions
 
-.macro	crcro;	byte, crcl, crch
-	mov	zl, @0			;  1
-	eor	zl, @2			;  1
-	ldi	zh, high(crchi)		;  1
-	ld	@2, Z			;  3
-	eor	@2, @1			;  1
-	ldi	zh, high(crclo)		;  1
-	ld	@1, Z			;  3
-.endmacro
-
-;=============================================================================
+;-----------------------------------------------------------------------------
 ;
 ;	Definitions
 ;
@@ -48,21 +38,35 @@
 #ifdef mscpemulation
 .include "MSCP/_mscp.inc"
 #endif
-;--------------------------------------------------------------------------
+;=============================================================================
 ;
 ;	Data Segment
 ;	
 .include "main.inc"		; Disk Emulator Data section
 
-	.macro	LEDON
+;=============================================================================
+;
+;	Macro Definitions
+;
+.macro	LEDON
 	ldi	r18, led_time
 	sts	led_oneshot, r18
 	cbi	b_LED
-	.endmacro
+.endmacro
 	
-	.macro	LEDOFF
+.macro	LEDOFF
 	sbi	b_LED	
-	.endmacro
+.endmacro
+
+.macro	crcro;	byte, crcl, crch
+	mov	zl, @0			;  1
+	eor	zl, @2			;  1
+	ldi	zh, high(crchi)		;  1
+	ld	@2, Z			;  1
+	eor	@2, @1			;  1
+	ldi	zh, high(crclo)		;  1
+	ld	@1, Z			;  1
+.endmacro
 
 ;=============================================================================
 ;
@@ -84,15 +88,15 @@
 	jmp	rtos_
 
 	.org	v_QBUS			; External Level 1 Q-Bus Interrupt
-	jmp	qbus_			; Module qbus-v2-0.asm
+	jmp	qbus_			; Module qbus-v2-0.asm (in RLV12 or MSCP)
 	
 	#ifdef	rlv12emulation
 	.org	v_GO			; Software Interrupt Controller GO
-	jmp	go_			; Module rlv12-v2-0.asm
+	jmp	go_			; Module RLV12/rlv12-v2-0.asm
 	#endif
 	#ifdef	mscpemulation
 	.org	v_IP			; Software Interrupt Controller IP, SA
-	jmp	poll_
+	jmp	poll_			; Module MSCP/poll-v2-0.asm
 	#endif
 
 	.org	USART1_RXC_vect
@@ -297,7 +301,7 @@ userrowcopy:
 nouserrow:
 ;=============================================================================
 ;
-;	Setup CPLD config register 6
+;	Setup CPLD config register
 ;
 	clr	r17				; assume default
 	lds	r16, config+usr_bootflags	; get boot ROM flags
