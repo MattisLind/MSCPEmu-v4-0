@@ -116,10 +116,13 @@ userrowwrite020:
 
 ;--------------------------------------------------------------------------
 ;
-;	Primary/Secondary
+;	Primary/Secondary Device Register Address
 ;
 
 devprimary:
+	lds	r17, config+usr_systemflags
+	cbr	r17, (1<<usr__alt)
+	sts	config+usr_systemflags, r17
 	clr	r17				; assume default
 	lds	r16, config+usr_bootflags	; get boot ROM flags
 	bst	r16, usr__bootrom		; 0=disable, 1=enable
@@ -127,6 +130,9 @@ devprimary:
 	rjmp	deviceaddress
 
 devsecondary:
+	lds	r17, config+usr_systemflags
+	sbr	r17, (1<<usr__alt)
+	sts	config+usr_systemflags, r17
 	clr	r17				; assume default
 	lds	r16, config+usr_bootflags	; get boot ROM flags
 	bst	r16, usr__bootrom		; 0=disable, 1=enable
